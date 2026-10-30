@@ -43,6 +43,7 @@ const SDL_EVENT_KEYDOWN = UInt32(768)
 const SDL_EVENT_KEYUP = UInt32(769)
 
 function poll_events()::Int32
+    llvm_game_update()
     event_ptr::Ptr{SDL_Event} = Ptr{SDL_Event}(wasm_malloc(SDL_EVENT_BYTES))
     quit::Int32 = Int32(0)
     printf(RENDERER)

@@ -23,3 +23,7 @@ int main(void) {
 
     return 0;
 }
+
+void game_update() {
+    printf("update func\n");
+}
