@@ -129,7 +129,15 @@ else
 end
 
 lib_path = joinpath(output_dir, lib_name)
-soname = Sys.islinux() ? ["-Wl,-soname,$lib_name"] : String[]
+# Linux: DT_SONAME. macOS: ld records the -o path (lib_desktop/libjg_static.dylib)
+# unless -install_name is set; @rpath is what the game binary's -rpath resolves.
+soname = if Sys.islinux()
+    ["-Wl,-soname,$lib_name"]
+elseif Sys.isapple()
+    ["-Wl,-install_name,@rpath/$lib_name"]
+else
+    String[]
+end
 # No -flto on final link: mix LTO Julia .o with non-LTO C runtime.
 run_cmd("gcc", vcat(["-shared", "-O3", "-fPIC"], soname, ["-o", lib_path, merged_o, runtime_o], system_libs))
 println("✅ Shared library: $lib_path")
