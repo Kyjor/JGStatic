@@ -17,20 +17,35 @@ int main(void) {
     printf("Window opened\n");
     printf("Renderer init\n");
 
-    int exit = 0;
-    while(exit == 0) {
-        render_clear();
-        exit = poll_events();
-
-        render_present();
-        delay();
-    }
-
+    game_loop();
     printf("Window opened");
 
     return 0;
 }
 
+void game_load() {
+    printf("load func\n");
+}
+
 void game_update() {
     printf("update func\n");
+}
+
+void game_key_pressed(int key) {
+    printf("key pressed: %d", key);
+    printf("\n");
+}
+
+void game_draw() {
+    printf("draw func\n");
+}
+
+void game_key_released(int key) {
+    printf("key released: %d", key);
+    printf("\n");
+}
+
+
+void game_shutdown() {
+    printf("shutdown func\n");
 }

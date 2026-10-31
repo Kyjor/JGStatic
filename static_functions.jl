@@ -43,10 +43,8 @@ const SDL_EVENT_KEYDOWN = UInt32(768)
 const SDL_EVENT_KEYUP = UInt32(769)
 
 function poll_events()::Int32
-    llvm_game_update()
     event_ptr::Ptr{SDL_Event} = Ptr{SDL_Event}(wasm_malloc(SDL_EVENT_BYTES))
     quit::Int32 = Int32(0)
-    printf(RENDERER)
     while llvm_SDL_PollEvent(event_ptr) != Int32(0)
         event_type::UInt32 = event_ptr.type
         key::Int32 = Int32(0)
@@ -55,9 +53,10 @@ function poll_events()::Int32
             quit = Int32(1)
         elseif event_type == SDL_EVENT_KEYDOWN
             key = Int32(event_ptr.key.keysym.sym)
-            printf(key)
+            llvm_game_key_pressed(key)
         elseif event_type == SDL_EVENT_KEYUP
             key = Int32(event_ptr.key.keysym.sym)
+            llvm_game_key_released(key)
         end
     end
     wasm_free(Ptr{Cvoid}(event_ptr))
@@ -78,6 +77,30 @@ end
 function render_present()
     renderer = llvm_get_renderer()
     llvm_SDL_RenderPresent(renderer)
+end
+test::Int32 = Int32(0)
+function game_loop()
+    llvm_game_load()
+    exit::Int32 = Int32(0)
+    while exit == Int32(0)
+        render_clear()
+        exit = poll_events()
+        llvm_game_update()
+        #draw()
+        llvm_game_draw()
+
+        render_present()
+        delay()
+    end
+
+    llvm_game_shutdown()
+end
+
+function jq_quit()::Bool
+
+
+
+    return true
 end
 
 function renderer_slot(do_set::Int32, value::UInt64)::UInt64
