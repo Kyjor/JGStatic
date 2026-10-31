@@ -72,6 +72,18 @@ function llvm_game_should_continue()::Int32
                        """, "main"), Int32, Tuple{},)
 end
 
+function llvm_game_scene_load()
+    Base.llvmcall(("""
+                   declare void @game_scene_load() nounwind
+
+                   define void @main() {
+                       entry:
+                       call void @game_scene_load()
+                       ret void
+                       }
+                       """, "main"), Cvoid, Tuple{},)
+end
+
 function llvm_game_shutdown()
     Base.llvmcall(("""
                    declare void @game_shutdown() nounwind

@@ -78,15 +78,26 @@ function render_present()
     renderer = llvm_get_renderer()
     llvm_SDL_RenderPresent(renderer)
 end
-test::Int32 = Int32(0)
+
+# entities
+# colliders
+# sprites
 function game_loop()
+    p::Ptr{Int32} = Ptr{Int32}(wasm_malloc(UInt32(4)))
+    unsafe_store!(p, Int32(42))
+    printf(unsafe_load(p))
+
+    load()
     llvm_game_load()
+    init()
+    open_window(str_ptr(w"Test"))
+
     exit::Int32 = Int32(0)
     while exit == Int32(0)
         render_clear()
         exit = poll_events()
         llvm_game_update()
-        #draw()
+        draw()
         llvm_game_draw()
 
         render_present()
@@ -94,6 +105,14 @@ function game_loop()
     end
 
     llvm_game_shutdown()
+end
+
+function draw()
+
+end
+
+function load()
+
 end
 
 function jq_quit()::Bool

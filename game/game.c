@@ -10,15 +10,7 @@
 //   -framework Cocoa \
 //   -rdynamic
 int main(void) {
-    int res = init();
-    printf("Init %d\n", res);
-
-    open_window("Test");
-    printf("Window opened\n");
-    printf("Renderer init\n");
-
     game_loop();
-    printf("Window opened");
 
     return 0;
 }
@@ -28,7 +20,7 @@ void game_load() {
 }
 
 void game_update() {
-    printf("update func\n");
+
 }
 
 void game_key_pressed(int key) {
@@ -37,7 +29,7 @@ void game_key_pressed(int key) {
 }
 
 void game_draw() {
-    printf("draw func\n");
+
 }
 
 void game_key_released(int key) {
