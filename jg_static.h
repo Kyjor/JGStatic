@@ -14,4 +14,7 @@ void game_loop();
 void render_present();
 int init();
 int poll_events();
+/* Scene file -> one arena. Null on failure. Pointer also stored in scene_slot. */
+void *load_scene(const uint8_t *path);
+uint64_t scene_slot(int32_t do_set, uint64_t value);
 #endif /* JG_STATIC_H */

@@ -9,6 +9,8 @@ functions_to_compile = [
     (render_clear, (), "render_clear"),
     (render_present, (), "render_present"),
     (renderer_slot, (Int32, UInt64), "renderer_slot"),
+    (scene_slot, (Int32, UInt64), "scene_slot"),
+    (load_scene, (Ptr{UInt8},), "load_scene"),
     (game_loop, (), "game_loop")
 #     (static_update, (Ptr{Cvoid}, Int32), "static_update"),
 #     (static_add_velocity, (Ptr{Cvoid}, Int64, Int64), "static_add_velocity"),

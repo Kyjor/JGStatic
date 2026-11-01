@@ -112,7 +112,13 @@ function draw()
 end
 
 function load()
-
+    path::Ptr{UInt8} = str_ptr(w"scenes/scene.json")
+    scene::Ptr{Scene} = llvm_load_scene(path)
+    wasm_free(path)
+    if scene == Ptr{Scene}(C_NULL)
+        printf(c"scene load failed\n")
+    end
+    return
 end
 
 function jq_quit()::Bool
