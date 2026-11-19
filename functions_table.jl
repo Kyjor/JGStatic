@@ -11,6 +11,12 @@ functions_to_compile = [
     (renderer_slot, (Int32, UInt64), "renderer_slot"),
     (scene_slot, (Int32, UInt64), "scene_slot"),
     (load_scene, (Ptr{UInt8},), "load_scene"),
+    (camera_move, (Float64, Float64), "camera_move"),
+    (camera_set_position, (Float64, Float64), "camera_set_position"),
+    (entity_move, (Int32, Float64, Float64), "entity_move"),
+    (set_entity_position, (Int32, Float64, Float64), "set_entity_position"),
+    (get_entity_position_x, (Int32,), "get_entity_position_x"),
+    (get_entity_position_y, (Int32,), "get_entity_position_y"),
     (game_loop, (), "game_loop")
 #     (static_update, (Ptr{Cvoid}, Int32), "static_update"),
 #     (static_add_velocity, (Ptr{Cvoid}, Int64, Int64), "static_add_velocity"),

@@ -239,6 +239,11 @@ struct Scene
     print_buf::Ptr{UInt8}
     scratch_entity::Ptr{SceneEntity}
     scratch_fields::Ptr{CompFields}
+    textures::Ptr{Ptr{SDL_Texture}}
+    draw_order::Ptr{Int32}
+    src_rect::Ptr{SDL_Rect}
+    dst_rect::Ptr{SDL_FRect}
+    rot_center::Ptr{SDL_FPoint}
 end
 
 function blank_entity()::SceneEntity
@@ -1194,6 +1199,11 @@ function load_scene(path::Ptr{UInt8})::Ptr{Scene}
         none_ui, Int32(0),
         blank_camera(),
         print_buf, scratch_entity, scratch_fields,
+        Ptr{Ptr{SDL_Texture}}(C_NULL),
+        Ptr{Int32}(C_NULL),
+        Ptr{SDL_Rect}(C_NULL),
+        Ptr{SDL_FRect}(C_NULL),
+        Ptr{SDL_FPoint}(C_NULL),
     ))
     cursor::Ptr{JsonCursor} = Ptr{JsonCursor}(wasm_malloc(UInt32(sizeof(JsonCursor))))
     unsafe_store!(cursor, JsonCursor(file.ptr, file.len, UInt32(0)))
