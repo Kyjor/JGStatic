@@ -39,7 +39,7 @@ function build_draw_order(scene::Ptr{Scene})
     if n <= Int32(0)
         return
     end
-    order::Ptr{Int32} = Ptr{Int32}(wasm_malloc(UInt32(n) * UInt32(sizeof(Int32))))
+    order::Ptr{Int32} = Ptr{Int32}(wasm_malloc(unsafe_trunc(UInt32, n) * UInt32(sizeof(Int32))))
     if order == Ptr{Int32}(C_NULL)
         return
     end
@@ -80,7 +80,7 @@ function prepare_sprites()
         return
     end
     n::Int32 = scene.sprite_count
-    textures::Ptr{Ptr{SDL_Texture}} = Ptr{Ptr{SDL_Texture}}(wasm_malloc(UInt32(n) * UInt32(sizeof(Ptr{SDL_Texture}))))
+    textures::Ptr{Ptr{SDL_Texture}} = Ptr{Ptr{SDL_Texture}}(wasm_malloc(unsafe_trunc(UInt32, n) * UInt32(sizeof(Ptr{SDL_Texture}))))
     src_rect::Ptr{SDL_Rect} = Ptr{SDL_Rect}(wasm_malloc(UInt32(sizeof(SDL_Rect))))
     dst_rect::Ptr{SDL_FRect} = Ptr{SDL_FRect}(wasm_malloc(UInt32(sizeof(SDL_FRect))))
     rot_center::Ptr{SDL_FPoint} = Ptr{SDL_FPoint}(wasm_malloc(UInt32(sizeof(SDL_FPoint))))

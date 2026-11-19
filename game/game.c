@@ -16,6 +16,10 @@ int main(void) {
     return 0;
 }
 
+void game_configure() {
+    printf("configure func\n");
+}
+
 void game_load() {
     printf("load func\n");
 }

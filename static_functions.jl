@@ -3,6 +3,7 @@ include("input.jl")
 include("camera.jl")
 include("entity.jl")
 include("sprite.jl")
+include("fps.jl")
 
 function init()::Int32
     init_flags::UInt32 = UInt32(SDL_INIT_VIDEO) | UInt32(SDL_INIT_AUDIO)
@@ -42,9 +43,10 @@ function game_loop()
         llvm_game_update()
         draw()
         llvm_game_draw()
+        draw_fps()
 
         render_present()
-        delay()
+       # delay()
     end
 
     llvm_game_shutdown()

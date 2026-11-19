@@ -30,7 +30,7 @@ function open_window(name::Ptr{UInt8})::Int32
         wasm_free(Ptr{Cvoid}(msg_ptr))
     end
 
-    flags::UInt32 = UInt32(SDL_RENDERER_ACCELERATED) | UInt32(SDL_RENDERER_PRESENTVSYNC)
+    flags::UInt32 = UInt32(SDL_RENDERER_ACCELERATED) #| UInt32(SDL_RENDERER_PRESENTVSYNC)
     renderer::Ptr{SDL_Renderer} = llvm_SDL_CreateRenderer(window, Int32(-1), flags)
     if renderer == Ptr{SDL_Renderer}(C_NULL)
         printf(c"Failed to create renderer\n")
