@@ -320,7 +320,7 @@ end
 function llvm_fclose(file::Ptr{Cvoid})::Int32
     return Base.llvmcall(("""
         declare i32 @fclose(i8*) nounwind
-        
+        define i32 @main(i8* %file) {
         entry:
             %r = call i32 @fclose(i8* %file)
             ret i32 %r
