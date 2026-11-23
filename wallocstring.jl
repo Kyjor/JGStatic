@@ -32,6 +32,6 @@ function str_ptr(str::WallocString)::Ptr{UInt8}
     for i = 1:len
         unsafe_store!(Ptr{UInt8}(ptr + i - 1), codeunit(str, i))
     end
-    unsafe_store!(Ptr{UInt8}(ptr + len), 0x00)
+    unsafe_store!(Ptr{UInt8}(ptr + len - 1), 0x00)
     return ptr
 end

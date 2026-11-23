@@ -78,6 +78,47 @@ function llvm_set_hi(value::Int32)::Cvoid
                        """, "main"), Cvoid, Tuple{Int32}, value)
 end
 
+# Performance-counter slot. The global lives in clock_slot so every compiled function shares it.
+function clock_slot(do_set::Int32, value::UInt64)::UInt64
+    Base.llvmcall(("""
+                   @g_last_counter = global i64 0
+                   define i64 @main(i32 %do_set, i64 %value) {
+                       entry:
+                       %set = icmp ne i32 %do_set, 0
+                       br i1 %set, label %write, label %read
+                       write:
+                       store i64 %value, i64* @g_last_counter
+                       ret i64 %value
+                       read:
+                       %v = load i64, i64* @g_last_counter
+                       ret i64 %v
+                       }
+                       """, "main"), UInt64, Tuple{Int32, UInt64}, do_set, value)
+end
+
+function llvm_clock_get()::UInt64
+    Base.llvmcall(("""
+                   declare i64 @clock_slot(i32, i64) nounwind
+                   define i64 @main() {
+                       entry:
+                       %r = call i64 @clock_slot(i32 0, i64 0)
+                       ret i64 %r
+                       }
+                       """, "main"), UInt64, Tuple{},)
+end
+
+function llvm_clock_set(value::UInt64)
+    Base.llvmcall(("""
+                   declare i64 @clock_slot(i32, i64) nounwind
+                   define void @main(i64 %value) {
+                       entry:
+                       call i64 @clock_slot(i32 1, i64 %value)
+                       ret void
+                       }
+                       """, "main"), Cvoid, Tuple{UInt64}, value)
+    return
+end
+
 # ============================================================================
 # OpenGL ES 3.0 Type Definitions
 # ============================================================================

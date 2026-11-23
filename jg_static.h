@@ -10,7 +10,7 @@ extern "C" {
 void open_window(char *name);
 void delay();
 void render_clear();
-void game_loop();
+int game_loop(void);
 void render_present();
 int init();
 int poll_events();

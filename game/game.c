@@ -10,11 +10,13 @@
 //   -ljg_static -lSDL2_image -lSDL2_mixer -lSDL2 \
 //   -framework Cocoa \
 //   -rdynamic
+#ifndef JG_NO_MAIN
 int main(void) {
     game_loop();
 
     return 0;
 }
+#endif
 
 void game_configure() {
     printf("configure func\n");
@@ -28,8 +30,8 @@ static int key_left;
 static int key_right;
 static int key_up;
 static int key_down;
-static int gravity = 9.81;
-static double jump_force = 10.0;
+static double gravity = 9.81;
+static double jump_force = 5.5;
 static int jump_cooldown = 0;
 static int jump_was_down = 0;
 

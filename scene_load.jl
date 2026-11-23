@@ -286,37 +286,78 @@ function llvm_fopen(path::Ptr{UInt8}, mode::Ptr{UInt8})::Ptr{Cvoid}
     """, "main"), Ptr{Cvoid}, Tuple{Ptr{UInt8}, Ptr{UInt8}}, path, mode)
 end
 
-function llvm_fseek(file::Ptr{Cvoid}, offset::Int64, whence::Int32)::Int32
-    return Base.llvmcall(("""
-        declare i32 @fseek(i8*, i64, i32) nounwind
-        define i32 @main(i8* %file, i64 %offset, i32 %whence) {
-        entry:
-            %r = call i32 @fseek(i8* %file, i64 %offset, i32 %whence)
-            ret i32 %r
-        }
-    """, "main"), Int32, Tuple{Ptr{Cvoid}, Int64, Int32}, file, offset, whence)
-end
+if JG_TARGET_WASM
+    # wasm32: long and size_t are i32. Julia still passes sizes as i64.
+    function llvm_fseek(file::Ptr{Cvoid}, offset::Int64, whence::Int32)::Int32
+        return Base.llvmcall(("""
+            declare i32 @fseek(i8*, i32, i32) nounwind
+            define i32 @main(i8* %file, i64 %offset, i32 %whence) {
+            entry:
+                %off = trunc i64 %offset to i32
+                %r = call i32 @fseek(i8* %file, i32 %off, i32 %whence)
+                ret i32 %r
+            }
+        """, "main"), Int32, Tuple{Ptr{Cvoid}, Int64, Int32}, file, offset, whence)
+    end
 
-function llvm_ftell(file::Ptr{Cvoid})::Int64
-    return Base.llvmcall(("""
-        declare i64 @ftell(i8*) nounwind
-        define i64 @main(i8* %file) {
-        entry:
-            %r = call i64 @ftell(i8* %file)
-            ret i64 %r
-        }
-    """, "main"), Int64, Tuple{Ptr{Cvoid}}, file)
-end
+    function llvm_ftell(file::Ptr{Cvoid})::Int64
+        return Base.llvmcall(("""
+            declare i32 @ftell(i8*) nounwind
+            define i64 @main(i8* %file) {
+            entry:
+                %r = call i32 @ftell(i8* %file)
+                %e = sext i32 %r to i64
+                ret i64 %e
+            }
+        """, "main"), Int64, Tuple{Ptr{Cvoid}}, file)
+    end
 
-function llvm_fread(buf::Ptr{UInt8}, size::Int64, count::Int64, file::Ptr{Cvoid})::Int64
-    return Base.llvmcall(("""
-        declare i64 @fread(i8*, i64, i64, i8*) nounwind
-        define i64 @main(i8* %buf, i64 %size, i64 %count, i8* %file) {
-        entry:
-            %r = call i64 @fread(i8* %buf, i64 %size, i64 %count, i8* %file)
-            ret i64 %r
-        }
-    """, "main"), Int64, Tuple{Ptr{UInt8}, Int64, Int64, Ptr{Cvoid}}, buf, size, count, file)
+    function llvm_fread(buf::Ptr{UInt8}, size::Int64, count::Int64, file::Ptr{Cvoid})::Int64
+        return Base.llvmcall(("""
+            declare i32 @fread(i8*, i32, i32, i8*) nounwind
+            define i64 @main(i8* %buf, i64 %size, i64 %count, i8* %file) {
+            entry:
+                %sz = trunc i64 %size to i32
+                %n = trunc i64 %count to i32
+                %r = call i32 @fread(i8* %buf, i32 %sz, i32 %n, i8* %file)
+                %e = zext i32 %r to i64
+                ret i64 %e
+            }
+        """, "main"), Int64, Tuple{Ptr{UInt8}, Int64, Int64, Ptr{Cvoid}}, buf, size, count, file)
+    end
+else
+    function llvm_fseek(file::Ptr{Cvoid}, offset::Int64, whence::Int32)::Int32
+        return Base.llvmcall(("""
+            declare i32 @fseek(i8*, i64, i32) nounwind
+            define i32 @main(i8* %file, i64 %offset, i32 %whence) {
+            entry:
+                %r = call i32 @fseek(i8* %file, i64 %offset, i32 %whence)
+                ret i32 %r
+            }
+        """, "main"), Int32, Tuple{Ptr{Cvoid}, Int64, Int32}, file, offset, whence)
+    end
+
+    function llvm_ftell(file::Ptr{Cvoid})::Int64
+        return Base.llvmcall(("""
+            declare i64 @ftell(i8*) nounwind
+            define i64 @main(i8* %file) {
+            entry:
+                %r = call i64 @ftell(i8* %file)
+                ret i64 %r
+            }
+        """, "main"), Int64, Tuple{Ptr{Cvoid}}, file)
+    end
+
+    function llvm_fread(buf::Ptr{UInt8}, size::Int64, count::Int64, file::Ptr{Cvoid})::Int64
+        return Base.llvmcall(("""
+            declare i64 @fread(i8*, i64, i64, i8*) nounwind
+            define i64 @main(i8* %buf, i64 %size, i64 %count, i8* %file) {
+            entry:
+                %r = call i64 @fread(i8* %buf, i64 %size, i64 %count, i8* %file)
+                ret i64 %r
+            }
+        """, "main"), Int64, Tuple{Ptr{UInt8}, Int64, Int64, Ptr{Cvoid}}, buf, size, count, file)
+    end
 end
 
 function llvm_fclose(file::Ptr{Cvoid})::Int32
@@ -1150,12 +1191,15 @@ function llvm_get_scene()::Ptr{Scene}
 end
 
 function llvm_load_scene(path::Ptr{UInt8})::Ptr{Scene}
+    # StaticCompiler exports Ptr as i64. On wasm32 a real pointer is i32, so an i8* call does not match and becomes unreachable.
     return Base.llvmcall(("""
-        declare i8* @load_scene(i8*) nounwind
+        declare i64 @load_scene(i64) nounwind
         define i8* @main(i8* %path) {
         entry:
-            %r = call i8* @load_scene(i8* %path)
-            ret i8* %r
+            %p = ptrtoint i8* %path to i64
+            %r = call i64 @load_scene(i64 %p)
+            %out = inttoptr i64 %r to i8*
+            ret i8* %out
         }
     """, "main"), Ptr{Scene}, Tuple{Ptr{UInt8}}, path)
 end

@@ -26,29 +26,37 @@ function delay()
     return
 end
 
-function game_loop()
-    p::Ptr{Int32} = Ptr{Int32}(wasm_malloc(UInt32(4)))
-    unsafe_store!(p, Int32(42))
-    printf(unsafe_load(p))
-
-    load()
-    llvm_game_load()
-    init()
-    open_window(str_ptr(w"Test"))
-    prepare_sprites()
-
-    now::UInt64 = llvm_SDL_GetPerformanceCounter()
-    last::UInt64 = UInt64(0)
+# 1 = keep running, 0 = quit, -1 = startup failed.
+# Desktop stays in the loop. The browser calls this once per animation frame.
+function game_loop()::Int32
+    if !JG_TARGET_WASM || llvm_clock_get() == UInt64(0)
+        load()
+        llvm_game_load()
+        if init() != Int32(0)
+            return Int32(-1)
+        end
+        open_window(str_ptr(w"Test"))
+        prepare_sprites()
+        llvm_clock_set(llvm_SDL_GetPerformanceCounter())
+    end
 
     exit::Int32 = Int32(0)
     while exit == Int32(0)
         render_clear()
         exit = poll_events()
+        if exit != Int32(0)
+            break
+        end
 
         # update game
-        last = now
-        now = llvm_SDL_GetPerformanceCounter()
-        dt = Float64(now - last) / Float64(llvm_SDL_GetPerformanceFrequency())
+        now::UInt64 = llvm_SDL_GetPerformanceCounter()
+        last::UInt64 = llvm_clock_get()
+        llvm_clock_set(now)
+        dt::Float64 = 0.0
+        freq::UInt64 = llvm_SDL_GetPerformanceFrequency()
+        if last != UInt64(0) && freq != UInt64(0) && now > last
+            dt = Float64(now - last) / Float64(freq)
+        end
         llvm_game_update(dt)
 
         # update physics
@@ -62,9 +70,13 @@ function game_loop()
 
         render_present()
        # delay()
+        if JG_TARGET_WASM
+            return Int32(1)
+        end
     end
 
     llvm_game_shutdown()
+    return Int32(0)
 end
 
 function load()

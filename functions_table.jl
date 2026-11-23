@@ -8,6 +8,7 @@ functions_to_compile = [
     (renderer_slot, (Int32, UInt64), "renderer_slot"),
     (fps_slot, (Int32, UInt64), "fps_slot"),
     (scene_slot, (Int32, UInt64), "scene_slot"),
+    (clock_slot, (Int32, UInt64), "clock_slot"),
     (load_scene, (Ptr{UInt8},), "load_scene"),
     (camera_move, (Float64, Float64), "camera_move"),
     (camera_set_position, (Float64, Float64), "camera_set_position"),

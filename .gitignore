@@ -1,5 +1,8 @@
 
 lib_desktop/
+lib_wasm/
+game_wasm/
+game.data
 
 game/a.out
 
