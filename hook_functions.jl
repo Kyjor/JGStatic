@@ -12,16 +12,16 @@ function llvm_game_load()
                        """, "main"), Cvoid, Tuple{},)
 end
 
-function llvm_game_update()
+function llvm_game_update(dt::Float64)
     Base.llvmcall(("""
-                   declare void @game_update() nounwind
+                   declare void @game_update(double) nounwind
 
-                   define void @main() {
+                   define void @main(double %dt) {
                        entry:
-                       call void @game_update()
+                       call void @game_update(double %dt)
                        ret void
                        }
-                       """, "main"), Cvoid, Tuple{},)
+                       """, "main"), Cvoid, Tuple{Float64}, dt)
 end
 
 function llvm_game_key_pressed(key::Int32)

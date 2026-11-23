@@ -29,13 +29,14 @@ static int key_right;
 static int key_up;
 static int key_down;
 
-void game_update() {
+void game_update(double dt) {
     double dx = 0.0;
     double dy = 0.0;
-    if (key_left) dx -= 0.1;
-    if (key_right) dx += 0.1;
-    if (key_up) dy -= 0.1;
-    if (key_down) dy += 0.1;
+    double speed = 6.5;
+    if (key_left) dx -= speed * dt;
+    if (key_right) dx += speed * dt;
+    if (key_up) dy -= speed * dt;
+    if (key_down) dy += speed * dt;
     //camera_move(dx, dy);
     camera_set_position(get_entity_position_x(2) - 10 + dx, get_entity_position_y(2) - 8 + dy);
     entity_move(2, dx, dy);

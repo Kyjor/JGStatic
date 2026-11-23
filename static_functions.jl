@@ -36,11 +36,17 @@ function game_loop()
     open_window(str_ptr(w"Test"))
     prepare_sprites()
 
+    now::UInt64 = llvm_SDL_GetPerformanceCounter()
+    last::UInt64 = UInt64(0)
+
     exit::Int32 = Int32(0)
     while exit == Int32(0)
         render_clear()
         exit = poll_events()
-        llvm_game_update()
+        last = now
+        now = llvm_SDL_GetPerformanceCounter()
+        dt = Float64(now - last) / Float64(llvm_SDL_GetPerformanceFrequency())
+        llvm_game_update(dt)
         draw()
         llvm_game_draw()
         draw_fps()
