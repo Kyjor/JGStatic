@@ -1,6 +1,3 @@
-const SCALE_UNITS = 64.0
-const PIXELS_PER_UNIT = 16.0
-
 function span_c_string(span::ByteSpan)::Ptr{UInt8}
     if span.ptr == Ptr{UInt8}(C_NULL) || span.len == UInt32(0)
         return Ptr{UInt8}(C_NULL)

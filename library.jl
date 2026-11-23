@@ -1,9 +1,9 @@
 # Entry point for compile_library.jl (same pattern as sc-game/library.jl).
 using StaticTools
 
+include("constants.jl")
 include("structs.jl")
 
-include("structs.jl")
 include("llvm_functions.jl")
 include("llvm_bindings.jl")
 include("wallocstring.jl")

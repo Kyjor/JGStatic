@@ -1,0 +1,2 @@
+const SCALE_UNITS = 64.0
+const PIXELS_PER_UNIT = 16.0
