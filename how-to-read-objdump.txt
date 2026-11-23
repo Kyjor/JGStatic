@@ -1,0 +1,262 @@
+How to read a JGStatic object file
+==================================
+
+Use this when the game link fails with an undefined ijl_* symbol, or when you
+want to see what StaticCompiler actually kept of a Julia function.
+
+Do this on the .o from the build that failed. The next compile overwrites it.
+
+
+1. Find the object file
+-----------------------
+
+From the JGStatic directory:
+
+    for f in lib_desktop/*.o; do nm -u "$f" | grep ijl_ && echo "$f"; done
+
+nm -u lists symbols the file uses but does not define. The file named after
+the match is the one to open.
+
+game_loop.o holds game_loop and every function it calls that is not in
+functions_table.jl. check_collisions shows up in there, not in its own file.
+The symbol looks like julia_check_collisions_13109. The number changes every
+compile. The name in front of it is the Julia function.
+
+
+2. Find the function's address range
+-------------------------------------
+
+    nm lib_desktop/game_loop.o | grep ' t julia_'
+
+Each line is:
+
+    address   letter   name
+
+The address is where that function's code starts, in hex. The letter t means
+code that is private to this file. T would mean code that other files can call.
+U means used but not defined.
+
+The function ends where the next function begins. If check_collisions is at
+b80 and the next symbol is at bf0, the function is the bytes from b80 up to,
+but not including, bf0.
+
+
+3. Disassemble only that range
+------------------------------
+
+    objdump -d --start-address=0xb80 --stop-address=0xbf0 lib_desktop/game_loop.o
+
+Write both addresses out. objdump does not do arithmetic, so 0xb80+0x40 is
+wrong, and 0xADDRESS was a placeholder, not something to paste.
+
+objdump -d prints the instructions. One instruction per line. Four columns:
+
+    b80:  50      push   %rax
+    ^     ^       ^      ^
+    1     2       3      4
+
+1. Address of the first byte of this instruction.
+2. The raw bytes. Trust the words in columns 3 and 4 unless you are checking
+   a call (step 7). You can ignore column 2 the rest of the time.
+3. The instruction name.
+4. What it operates on.
+
+objdump prints one line per instruction and labels only its first byte. The
+other bytes of that instruction have addresses too, they just have no line of
+their own. A 5-byte instruction at bc7 occupies bc7, bc8, bc9, bca, and bcb.
+
+
+4. The instructions that matter
+-------------------------------
+
+mov      Copy the second thing into the first thing.
+movslq   Copy a 32-bit signed number into a 64-bit register. Indexes are
+         Int32. Addresses are 64-bit. This is that conversion.
+lea      Compute an address and store it. It does not load from memory.
+         lea (%rax,%rax,8), %rax is rax = rax + rax*8, which is rax * 9.
+imul     Multiply. imul $0x58, %rax, %rax multiplies rax by 88.
+cmp      Compare two values. The result is not stored in a register. The
+         next jump uses it.
+cmpl     Same, but the values are 32-bit. cmpl $0, 0x60(%rax) compares the
+         Int32 at that address with zero.
+test     Compare a register with zero. test %rax, %rax leaves rax unchanged.
+jle      Jump to that address if the compared value was less than or equal.
+jg       Jump if greater.
+je       Jump if equal.
+call     Jump to a function, then come back. The result comes back in %rax.
+ret      Leave this function.
+push     Copy a register onto the stack. See step 5.
+
+A while loop has to jump backward to its test. If every jump in the function
+goes forward, to a return, the compiler deleted the loop.
+
+
+5. Registers and the stack
+--------------------------
+
+A register is a slot inside the CPU. The ones in these dumps:
+
+    %rax   the usual scratch slot, and where a call puts its return value
+    %rcx   another scratch slot
+    %rdx   another scratch slot
+    %rdi   first integer argument to a call
+    %edi   the low 32 bits of %rdi. An Int32 argument is written here.
+
+The name rax is history. The old 16-bit chip had an accumulator named AX.
+The 32-bit version was EAX. The 64-bit version is RAX. Same slot, grown wider.
+edi is the 32-bit view of rdi, the same way.
+
+A later mov into a register throws away what it used to mean. While you read,
+keep a note of what each register holds right now. After
+mov 0x58(%rax), %rax, rax is no longer the scene. It is whatever lived at
+byte 0x58 of the scene.
+
+The stack is ordinary memory the function uses as a scratch pad. push %rax
+copies rax there and moves the stack marker. The push at the very top of a
+small function is usually just to put the stack on a 16-byte boundary before
+a call. Skip it. A push later in the function, of a value you just computed,
+means "hold this, the next call is going to overwrite the register."
+
+
+6. Offsets, and how to name one
+-------------------------------
+
+An offset is a distance in bytes from a starting point. It is not an address
+by itself.
+
+0x60(%rax) means: start at the address in rax, go forward 0x60 bytes (96),
+and use what is stored there. The parentheses mean "the bytes at this
+address." Without parentheses, the number is the number itself.
+$0 is the number zero. 0x60(%rax) is memory.
+
+To name 96, open the struct and add field sizes until the sum equals it.
+
+    pointer     8
+    Int32       4
+    UInt32      4
+    Float64     8
+    ByteSpan    16    (pointer 8, plus UInt32 4, padded out to 8)
+
+Julia inserts padding so a field starts at a multiple of its own size. A
+pointer or Float64 will not start at byte 4. Four unused bytes get inserted
+in front of it.
+
+Scene, from the start of the struct:
+
+    0x00  file_bytes        pointer
+    0x08  file_size         UInt32
+    0x0c  (padding)
+    0x10  arena             pointer
+    0x18  entities          pointer
+    0x20  entity_count      Int32
+    0x24  (padding)
+    0x28  transforms        pointer
+    0x30  transform_count   Int32
+    0x34  (padding)
+    0x38  sprites           pointer
+    0x40  sprite_count      Int32
+    0x44  (padding)
+    0x48  colliders         pointer
+    0x50  collider_count    Int32
+    0x54  (padding)
+    0x58  rigidbodies       pointer
+    0x60  rigidbody_count   Int32
+
+So cmpl $0, 0x60(%rax), when rax is the scene, is "compare rigidbody_count
+to zero." cmpl $0, 0x50(%rax) is collider_count.
+
+SceneEntity is 88 bytes (0x58). Three ByteSpans, then Int32 fields:
+
+    0x30 parent_index
+    0x34 is_active
+    0x38 persistent
+    0x3c transform
+    0x40 sprite
+    0x44 collider
+
+0x44(%rcx) is the entity's collider index.
+
+SceneCollider is 72 bytes. entity is an Int32, then padding, then the tag
+ByteSpan, so enabled lands at byte 24 (0x18):
+
+    0x00 entity       Int32
+    0x04 (padding)
+    0x08 tag          ByteSpan
+    0x18 enabled      Int32
+
+An array element is base + index * size_of_one. The compiler often builds
+that size out of a multiply by 9 and a scale of 8, because 9 * 8 = 72:
+
+    lea  (%rax,%rax,8), %rax          rax = index * 9
+    mov  0x18(%rdx,%rax,8), %edi      read 4 bytes at colliders + index*72 + 24
+
+That is collider.enabled, written into the first argument register.
+
+
+7. A call whose target is the next line
+----------------------------------------
+
+    bc7:  e8 00 00 00 00    call   bcc
+
+Five bytes:
+
+    address   bc7  bc8  bc9  bca  bcb
+    bytes     e8   00   00   00   00
+
+e8 means call. The next four bytes are the offset: how many bytes forward or
+backward to jump, measured from the instruction after the call (bcc here).
+In the .o those four bytes are still zero, so the distance is zero and
+objdump prints the next instruction as the target. That is not the real
+target. The linker fills those four bytes in later.
+
+Ask the relocation table, which names the symbol for those bytes:
+
+    objdump -r lib_desktop/game_loop.o | grep ijl_
+
+    0000000000000bc8 R_X86_64_PLT32  ijl_box_int32-4
+    0000000000000be1 R_X86_64_PLT32  ijl_type_error-4
+
+bc8 is not a missing line in the disassembly. It is the second byte of the
+call that starts at bc7, the first byte of the offset. The linker writes
+ijl_box_int32's distance there. The same thing at be1 is the offset inside
+the call that starts at be0, and that one is ijl_type_error.
+
+The "-4" is part of the relocation spelling. It means the distance is counted
+from the end of the four offset bytes. You can ignore it. The symbol name is
+the part that matters.
+
+
+8. Say the function back in English
+-----------------------------------
+
+Walk the instructions once. Track what rax, rcx, and rdx hold. Skip the
+opening push. Turn each cmp/jump pair into "if this, return" or "if this,
+continue." Turn each mov-from-memory into the field name from step 6.
+
+Then compare that English to the Julia source.
+
+What you want to see for a while loop: a compare, a conditional jump out,
+the body, then an add of 1 to the index and a jump back to the compare.
+What this build of check_collisions actually did:
+
+    call llvm_get_scene, result in rax. rax is the scene.
+    if rax is zero, print "Scene is null" and return.
+    if rigidbody_count <= 0, return.
+    if collider_count <= 0, return.
+    copy entities to rcx, colliders to rdx, rigidbodies to rax.
+    read rigidbodies[0].entity.
+    multiply by 88 and read that entity's collider index.
+    multiply by 72 and read that collider's enabled into edi.
+    call ijl_box_int32.
+    call ijl_type_error.
+
+No jump goes backward. Both loops are gone. The calls are Julia runtime
+functions for "this value has the wrong type." if demands a Bool.
+collider.enabled is an Int32, so the compiler boxed it and then reported a
+type error, and it deleted everything that could only run after the if.
+The source line is the if on the two enabled fields. Write the test as a
+comparison, enabled != Int32(0), so the condition is a Bool.
+
+Rebuild after changing it, then repeat from step 1. A clean result is: nm -u
+no longer lists ijl_type_error or ijl_box_int32, and the new disassembly has
+a jump back to the top of each loop.

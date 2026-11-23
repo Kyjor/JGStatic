@@ -16,8 +16,17 @@ function check_collisions()
             entity_b::SceneEntity = unsafe_load(elem_ptr(scene.entities, collider_index))
             entity_b_transform::SceneTransform = unsafe_load(elem_ptr(scene.transforms, entity_b.transform))
             entity_b_collider::SceneCollider = unsafe_load(elem_ptr(scene.colliders, entity_b.collider))
-            if entity_a_collider.enabled && entity_b_collider.enabled
-                printf(c"Colliders\n")
+            if entity_a_collider.enabled  > Int32(0) && entity_b_collider.enabled > Int32(0) && entity_a_collider.entity != entity_b_collider.entity
+                collision::Int32 = aabb_overlap(
+                    entity_a_transform.px, entity_a_transform.py,
+                    entity_a_collider.width, entity_a_collider.height,
+                    entity_b_transform.px, entity_b_transform.py,
+                    entity_b_collider.width, entity_b_collider.height,
+                 )
+
+                 if collision == Int32(1)
+                    printf(c"Colliding")
+                 end
             end
 
             collider_index += Int32(1)
@@ -25,4 +34,21 @@ function check_collisions()
 
         rigidbody_index += Int32(1)
     end
+end
+
+function aabb_overlap(
+    a_position_x, a_position_y, a_collider_width, a_collider_height,
+    b_position_x, b_position_y, b_collider_width, b_collider_height
+)::Int32
+    if  (a_position_x < b_position_x + b_collider_width) &&
+        (a_position_x + a_collider_width > b_position_x) &&
+        (a_position_y < b_position_y + b_collider_height) &&
+        (a_position_y + a_collider_height > b_position_y)
+            return Int32(1)
+    end
+
+    return Int32(0)
+end
+
+function resolve_aabb()
 end
