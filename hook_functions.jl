@@ -12,6 +12,18 @@ function llvm_game_load()
                        """, "main"), Cvoid, Tuple{},)
 end
 
+function llvm_game_late_update()
+    Base.llvmcall(("""
+                   declare void @game_late_update() nounwind
+
+                   define void @main() {
+                       entry:
+                       call void @game_late_update()
+                       ret void
+                       }
+                       """, "main"), Cvoid, Tuple{},)
+end
+
 function llvm_game_update(dt::Float64)
     Base.llvmcall(("""
                    declare void @game_update(double) nounwind

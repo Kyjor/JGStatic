@@ -13,6 +13,9 @@ functions_to_compile = [
     (camera_set_position, (Float64, Float64), "camera_set_position"),
     (entity_move, (Int32, Float64, Float64), "entity_move"),
     (set_entity_position, (Int32, Float64, Float64), "set_entity_position"),
+    (set_entity_velocity_x, (Int32, Float64), "set_entity_velocity_x"),
+    (set_entity_velocity_y, (Int32, Float64), "set_entity_velocity_y"),
+    (entity_on_ground, (Int32,), "entity_on_ground"),
     (get_entity_position_x, (Int32,), "get_entity_position_x"),
     (get_entity_position_y, (Int32,), "get_entity_position_y"),
     (game_loop, (), "game_loop")

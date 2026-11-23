@@ -63,6 +63,38 @@ function entity_move(index::Int32, dx::Float64, dy::Float64)
     return
 end
 
+function set_entity_velocity_x(index::Int32, vx::Float64)
+    scene::Ptr{Scene} = llvm_get_scene()
+    if scene == Ptr{Scene}(C_NULL)
+        return
+    end
+    entity::SceneEntity = get_entity(index)
+    if entity.rigidbody < Int32(0) || entity.rigidbody >= scene.rigidbody_count
+        return
+    end
+    body::SceneRigidbody = unsafe_load(elem_ptr(scene.rigidbodies, entity.rigidbody))
+    unsafe_store!(elem_ptr(scene.rigidbodies, entity.rigidbody), SceneRigidbody(
+        body.entity, body.mass, body.drag, body.use_gravity, vx, body.vy,
+    ))
+    return
+end
+
+function set_entity_velocity_y(index::Int32, vy::Float64)
+    scene::Ptr{Scene} = llvm_get_scene()
+    if scene == Ptr{Scene}(C_NULL)
+        return
+    end
+    entity::SceneEntity = get_entity(index)
+    if entity.rigidbody < Int32(0) || entity.rigidbody >= scene.rigidbody_count
+        return
+    end
+    body::SceneRigidbody = unsafe_load(elem_ptr(scene.rigidbodies, entity.rigidbody))
+    unsafe_store!(elem_ptr(scene.rigidbodies, entity.rigidbody), SceneRigidbody(
+        body.entity, body.mass, body.drag, body.use_gravity, body.vx, vy,
+    ))
+    return
+end
+
 function _entity_set_position(entity::SceneEntity, x::Float64, y::Float64)
     scene::Ptr{Scene} = llvm_get_scene()
     if scene.transforms == Ptr{SceneTransform}(C_NULL) || entity.transform >= scene.transform_count

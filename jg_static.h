@@ -23,5 +23,8 @@ void entity_move(int32_t index, double dx, double dy);
 double get_entity_position_x(int32_t index);
 double get_entity_position_y(int32_t index);
 void set_entity_position(int32_t index, double x, double y);
+void set_entity_velocity_x(int32_t index, double vx);
+void set_entity_velocity_y(int32_t index, double vy);
+int entity_on_ground(int32_t index);
 void camera_set_position(double x, double y);
 #endif /* JG_STATIC_H */

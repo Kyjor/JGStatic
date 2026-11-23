@@ -88,6 +88,8 @@ struct SceneRigidbody
     mass::Float64
     drag::Float64
     use_gravity::Int32
+    vx::Float64
+    vy::Float64
 end
 
 struct SceneSound
@@ -721,7 +723,7 @@ function commit_component!(scene::Ptr{Scene}, entity::Ptr{SceneEntity}, entity_i
         entity.collider = index
     elseif key_is(kind, k"Rigidbody") == Int32(1)
         index = scene.rigidbody_count
-        scene.rigidbody_count = store_item!(mode, scene.rigidbodies, index, SceneRigidbody(entity_index, fields.mass, fields.drag, fields.use_gravity))
+        scene.rigidbody_count = store_item!(mode, scene.rigidbodies, index, SceneRigidbody(entity_index, fields.mass, fields.drag, fields.use_gravity, 0.0, 0.0))
         entity.rigidbody = index
     elseif key_is(kind, k"SoundSource") == Int32(1)
         index = scene.sound_count

@@ -52,7 +52,8 @@ function game_loop()
         llvm_game_update(dt)
 
         # update physics
-        check_collisions()
+        physics_step(dt)
+        llvm_game_late_update()
 
         # draw game
         draw()
