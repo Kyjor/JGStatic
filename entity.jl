@@ -62,3 +62,21 @@ function entity_move(index::Int32, dx::Float64, dy::Float64)
     ))
     return
 end
+
+function _entity_set_position(entity::SceneEntity, x::Float64, y::Float64)
+    scene::Ptr{Scene} = llvm_get_scene()
+    if scene.transforms == Ptr{SceneTransform}(C_NULL) || entity.transform >= scene.transform_count
+        return
+    end
+    transform::SceneTransform = unsafe_load(elem_ptr(scene.transforms, entity.transform))
+    unsafe_store!(elem_ptr(scene.transforms, entity.transform), SceneTransform(
+        transform.entity,
+        x, 
+        y, 
+        transform.pz, 
+        transform.sx, 
+        transform.sy, 
+        transform.sz,
+    ))
+    return
+end

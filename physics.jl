@@ -25,8 +25,9 @@ function check_collisions()
                  )
 
                  if collision == Int32(1)
-                    printf(c"Colliding")
+                    printf(c"Colliding\n")
                     resolve_aabb(
+                        entity_a,
                         entity_a_transform.px, entity_a_transform.py,
                         entity_a_collider.width, entity_a_collider.height,
                         entity_b_transform.px, entity_b_transform.py,
@@ -57,21 +58,23 @@ function aabb_overlap(
 end
 
 function resolve_aabb(
+    entity_a::SceneEntity,
     a_position_x, a_position_y, a_collider_width, a_collider_height,
     b_position_x, b_position_y, b_collider_width, b_collider_height
 )
-     overlap_left   = (a_position_x + a_collider_width) - bx; # A's right past B's left
-     overlap_right  = (bx + b_collider_width) - a_position_x; # B's right past A's left
-     overlap_top    = (a_position_y + a_collider_height) - by; # A's bottom past B's top
-     overlap_bottom = (by + b_collider_height) - a_position_y; # B's bottom past A's top
+    overlap_left   = (a_position_x + a_collider_width) - b_position_x; # A's right past B's left
+     overlap_right  = (b_position_x + b_collider_width) - a_position_x; # B's right past A's left
+     overlap_top    = (a_position_y + a_collider_height) - b_position_y; # A's bottom past B's top
+     overlap_bottom = (b_position_y + b_collider_height) - a_position_y; # B's bottom past A's top
 
      min_x = overlap_left < overlap_right ? -overlap_left : overlap_right;
      min_y = overlap_top < overlap_bottom ? -overlap_top : overlap_bottom;
 
-    # if (fabsf(min_x) < fabsf(min_y)) {
-    #     a_position_x += min_x;
-    # } else {
-    #     a_position_y += min_y;
-    # }
+    if (abs(min_x) < abs(min_y))
+        a_position_x += min_x;
+    else
+        a_position_y += min_y;
+    end
+    _entity_set_position(entity_a, a_position_x, a_position_y)
 
 end
