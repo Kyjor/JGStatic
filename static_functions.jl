@@ -2,6 +2,7 @@ include("renderer.jl")
 include("input.jl")
 include("camera.jl")
 include("entity.jl")
+include("physics.jl")
 include("sprite.jl")
 include("fps.jl")
 
@@ -43,10 +44,17 @@ function game_loop()
     while exit == Int32(0)
         render_clear()
         exit = poll_events()
+
+        # update game
         last = now
         now = llvm_SDL_GetPerformanceCounter()
         dt = Float64(now - last) / Float64(llvm_SDL_GetPerformanceFrequency())
         llvm_game_update(dt)
+
+        # update physics
+        check_collisions()
+
+        # draw game
         draw()
         llvm_game_draw()
         draw_fps()

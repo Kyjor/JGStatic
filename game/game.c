@@ -28,6 +28,9 @@ static int key_left;
 static int key_right;
 static int key_up;
 static int key_down;
+static int gravity = 9.81;
+static int jump_force = 10.0;
+static int jump_cooldown = 0;
 
 void game_update(double dt) {
     double dx = 0.0;
@@ -36,10 +39,14 @@ void game_update(double dt) {
     if (key_left) dx -= speed * dt;
     if (key_right) dx += speed * dt;
     if (key_up) dy -= speed * dt;
-    if (key_down) dy += speed * dt;
+    dy += gravity * dt;
     //camera_move(dx, dy);
     camera_set_position(get_entity_position_x(2) - 10 + dx, get_entity_position_y(2) - 8 + dy);
     entity_move(2, dx, dy);
+
+    if (get_entity_position_y(2) > 8) {
+        set_entity_position(2, get_entity_position_x(2), 2.0);
+    }
 }
 
 void game_key_pressed(int key) {
