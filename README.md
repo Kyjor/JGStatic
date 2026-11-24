@@ -2,7 +2,7 @@
 
 ## Globals
 
-StaticCompiler compiles each exported function into its own object file, so a Julia `global` is not shared. Put one LLVM global in a slot function and list that function in `functions_table.jl`. That object file owns the storage.
+StaticCompiler compiles each exported function into its own object file, so a Julia `global` is not shared. Put one LLVM global in a slot function and list that function in `src/functions_table.jl`. That object file owns the storage.
 
 ```julia
 function example_slot(do_set::Int32, value::UInt64)::UInt64

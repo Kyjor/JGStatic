@@ -37,7 +37,7 @@ This project uses **StaticCompiler.jl** to compile Julia code to LLVM IR and the
        llvm_SDL_RenderClear(renderer)
    end
    ```
-   (`llvm_bindings.jl` wrappers may still use `::Cvoid`; don't copy that pattern in `engine/`.)
+   (`src/platform/llvm_bindings.jl` wrappers may still use `::Cvoid`; don't copy that pattern in `src/engine/`.)
 
 4. **NO standard library functions that allocate**
    - ❌ `push!`, `append!`, `pop!` on standard arrays
@@ -325,7 +325,7 @@ This project uses **StaticCompiler.jl** to compile Julia code to LLVM IR and the
 
 ### SDL/C Interop
 
-1. **Use llvm_* wrapper functions** for SDL calls (defined in `llvm_bindings.jl`)
+1. **Use llvm_* wrapper functions** for SDL calls (defined in `src/platform/llvm_bindings.jl`)
    ```julia
    window = llvm_SDL_CreateWindow(name, x, y, w, h, flags)
    ```
@@ -384,7 +384,7 @@ functions_to_compile = [
 
 ### Error: `undefined reference to ijl_invoke` / `julia_convert_*` when linking `host`
 - **Cause**: `::Cvoid` on a function compiled with StaticCompiler (especially with no explicit return)
-- **Solution**: Remove `::Cvoid` from `engine/` and game code; use untyped fall-through or `::Int32` + `return`
+- **Solution**: Remove `::Cvoid` from `src/engine/` and game code; use untyped fall-through or `::Int32` + `return`
 
 ### Error: "ccall not supported"
 - **Cause**: Direct ccall in code to be compiled
@@ -408,7 +408,7 @@ functions_to_compile = [
 - [ ] No String literals (use `WallocString` with `w"..."`)
 - [ ] No println/print (use `printf` with `c"..."`)
 - [ ] All functions have explicit return types `::Type`
-- [ ] No `::Cvoid` on `engine/` or game functions compiled with StaticCompiler
+- [ ] No `::Cvoid` on `src/engine/` or game functions compiled with StaticCompiler
 - [ ] All variables have explicit type annotations `::Type`
 - [ ] No variable type redeclarations in the same function (declare once at top, assign in branches)
 - [ ] All allocations use `wasm_malloc` and are freed with `wasm_free`
@@ -423,7 +423,7 @@ functions_to_compile = [
 - `game_structs.jl` - Game-specific structs and pointer accessors
 - `structs.jl` - SDL2 struct definitions and bindings
 - `sprite.jl` - Sprite loading and rendering
-- `llvm_bindings.jl` - SDL2 function bindings via llvmcall
+- `src/platform/llvm_bindings.jl` - SDL2 function bindings via llvmcall
 - `llvm_wrappers.jl` - malloc/free wrappers
 - `wallocstring.jl` - String type that works without GC
 - `compile_game.jl` - Build script for web/desktop targets

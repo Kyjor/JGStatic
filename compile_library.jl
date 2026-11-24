@@ -23,7 +23,7 @@ build_type in ("web", "desktop") || error("Usage: julia --project=. compile_libr
 # wasm32 libc uses 32-bit long and size_t. scene_load.jl reads this before emitting file IO calls.
 const JG_TARGET_WASM = build_type == "web"
 
-compile_file = get(ENV, "FILE", "library.jl")
+compile_file = get(ENV, "FILE", "src/library.jl")
 include(joinpath(STATIC_ROOT, compile_file))
 
 lib_base = get(ENV, "LIB_NAME", "jg_static")
@@ -51,7 +51,7 @@ const _BATCH_SIG = (
     Int32,
 )
 
-include("functions_table.jl")
+include(joinpath(STATIC_ROOT, "src/functions_table.jl"))
 
 compile_ok = true
 for (func, types, name) in functions_to_compile
