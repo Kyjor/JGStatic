@@ -45,6 +45,8 @@ void game_update(double dt) {
     if (key_up && !jump_was_down && entity_on_ground(2))
         set_entity_velocity_y(2, -jump_force);
     jump_was_down = key_up;
+
+    if ()
 }
 
 void game_late_update(void) {
