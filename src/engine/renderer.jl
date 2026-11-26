@@ -36,6 +36,7 @@ function open_window(name::Ptr{UInt8})::Int32
         printf(c"Failed to create renderer\n")
     end
     llvm_set_renderer(renderer)
+    create_software_frame(renderer)
 
     return Int32(-1)
 end

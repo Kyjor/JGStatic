@@ -43,10 +43,12 @@ void game_update(double dt) {
     if (key_right) vx += speed;
     set_entity_velocity_x(2, vx);
     if (key_up && !jump_was_down && entity_on_ground(2))
+    {
         set_entity_velocity_y(2, -jump_force);
+    }
+    
     jump_was_down = key_up;
 
-    if ()
 }
 
 void game_late_update(void) {
@@ -76,3 +78,20 @@ void game_key_released(int key) {
 void game_shutdown() {
     printf("shutdown func\n");
 }
+
+int game_wants_3d(void) {
+    return 0;
+}
+
+double game_model_yaw(void) {
+    return 0.0;
+}
+
+double game_cam_x(void) { return 0.0; }
+double game_cam_y(void) { return 0.0; }
+double game_cam_z(void) { return 0.0; }
+double game_cam_yaw(void) { return 0.0; }
+double game_cam_pitch(void) { return 0.0; }
+int game_consume_shot(void) { return 0; }
+void game_mouse_moved(int dx, int dy) { (void)dx; (void)dy; }
+void game_mouse_pressed(int button) { (void)button; }

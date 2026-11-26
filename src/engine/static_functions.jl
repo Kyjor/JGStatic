@@ -1,4 +1,7 @@
 include("renderer.jl")
+include("raster.jl")
+include("model.jl")
+include("fps_scene.jl")
 include("input.jl")
 include("camera.jl")
 include("entity.jl")
@@ -29,14 +32,22 @@ end
 # 1 = keep running, 0 = quit, -1 = startup failed.
 # Desktop stays in the loop. The browser calls this once per animation frame.
 function game_loop()::Int32
+    three_d::Int32 = llvm_game_wants_3d()
     if !JG_TARGET_WASM || llvm_clock_get() == UInt64(0)
-        load()
+        if three_d == Int32(0)
+            load()
+        end
         llvm_game_load()
         if init() != Int32(0)
             return Int32(-1)
         end
-        open_window(str_ptr(w"Test"))
-        prepare_sprites()
+        if three_d == Int32(0)
+            open_window(str_ptr(w"Test"))
+            prepare_sprites()
+        else
+            open_window(str_ptr(w"Range"))
+            init_fps_scene()
+        end
         llvm_clock_set(llvm_SDL_GetPerformanceCounter())
     end
 
@@ -60,14 +71,20 @@ function game_loop()::Int32
         llvm_game_update(dt)
 
         # update physics
-        physics_step(dt)
+        if three_d == Int32(0)
+            physics_step(dt)
+        end
         llvm_game_late_update()
 
         # draw game
-        draw()
-        llvm_game_draw()
+        if three_d == Int32(0)
+            draw()
+            llvm_game_draw()
+           
+        else
+            draw_fps_scene(dt)
+        end
         draw_fps()
-
         render_present()
        # delay()
         if JG_TARGET_WASM

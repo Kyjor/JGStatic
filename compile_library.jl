@@ -117,7 +117,7 @@ end
 
 if build_type == "web"
     compile_ok || exit(1)
-    println("\n🔨 Linking WebAssembly (engine + game/game.c)...")
+    println("\n🔨 Linking WebAssembly (engine + game/3dgame.c)...")
 
     game_wasm_dir = joinpath(STATIC_ROOT, "game_wasm")
     isdir(game_wasm_dir) || mkdir(game_wasm_dir)
@@ -143,7 +143,7 @@ if build_type == "web"
     emcc === nothing && error("emcc not found — install Emscripten and source emsdk_env.sh")
     run(Cmd([
         emcc, combined_ll,
-        joinpath(STATIC_ROOT, "game", "game.c"),
+        joinpath(STATIC_ROOT, "game", "3dgame.c"),
         joinpath(STATIC_ROOT, "jg_static_runtime.c"),
         "-DJG_NO_MAIN",
         "-O2",
