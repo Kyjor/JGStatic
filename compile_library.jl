@@ -144,6 +144,13 @@ if build_type == "web"
     run(Cmd([
         emcc, combined_ll,
         joinpath(STATIC_ROOT, "game", "3dgame.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "player.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "weapons.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "enemies.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "procgen.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "mission.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "meta.c"),
+        joinpath(STATIC_ROOT, "game", "shooter", "hud.c"),
         joinpath(STATIC_ROOT, "jg_static_runtime.c"),
         "-DJG_NO_MAIN",
         "-O2",

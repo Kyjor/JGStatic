@@ -95,3 +95,5 @@ double game_cam_pitch(void) { return 0.0; }
 int game_consume_shot(void) { return 0; }
 void game_mouse_moved(int dx, int dy) { (void)dx; (void)dy; }
 void game_mouse_pressed(int button) { (void)button; }
+void game_mouse_released(int button) { (void)button; }
+void game_pointer(int x, int y) { (void)x; (void)y; }

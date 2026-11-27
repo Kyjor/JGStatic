@@ -1,7 +1,7 @@
 include("renderer.jl")
 include("raster.jl")
 include("model.jl")
-include("fps_scene.jl")
+include("world3d.jl")
 include("input.jl")
 include("camera.jl")
 include("entity.jl")
@@ -45,8 +45,8 @@ function game_loop()::Int32
             open_window(str_ptr(w"Test"))
             prepare_sprites()
         else
-            open_window(str_ptr(w"Range"))
-            init_fps_scene()
+            open_window(str_ptr(w"Raid"))
+            init_world3d()
         end
         llvm_clock_set(llvm_SDL_GetPerformanceCounter())
     end
@@ -82,7 +82,7 @@ function game_loop()::Int32
             llvm_game_draw()
            
         else
-            draw_fps_scene(dt)
+            render_world3d(dt)
         end
         draw_fps()
         render_present()

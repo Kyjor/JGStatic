@@ -186,6 +186,17 @@ function llvm_game_consume_shot()::Int32
                        """, "main"), Int32, Tuple{},)
 end
 
+function llvm_game_pointer(x::Int32, y::Int32)
+    Base.llvmcall(("""
+                   declare void @game_pointer(i32, i32) nounwind
+                   define void @main(i32 %x, i32 %y) {
+                       entry:
+                       call void @game_pointer(i32 %x, i32 %y)
+                       ret void
+                       }
+                       """, "main"), Cvoid, Tuple{Int32, Int32}, x, y)
+end
+
 function llvm_game_mouse_moved(dx::Int32, dy::Int32)
     Base.llvmcall(("""
                    declare void @game_mouse_moved(i32, i32) nounwind
@@ -195,6 +206,17 @@ function llvm_game_mouse_moved(dx::Int32, dy::Int32)
                        ret void
                        }
                        """, "main"), Cvoid, Tuple{Int32, Int32}, dx, dy)
+end
+
+function llvm_game_mouse_released(button::Int32)
+    Base.llvmcall(("""
+                   declare void @game_mouse_released(i32) nounwind
+                   define void @main(i32 %button) {
+                       entry:
+                       call void @game_mouse_released(i32 %button)
+                       ret void
+                       }
+                       """, "main"), Cvoid, Tuple{Int32}, button)
 end
 
 function llvm_game_mouse_pressed(button::Int32)

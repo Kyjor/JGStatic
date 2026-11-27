@@ -37,4 +37,41 @@ double game_cam_pitch(void);
 int game_consume_shot(void);
 void game_mouse_moved(int dx, int dy);
 void game_mouse_pressed(int button);
+void game_mouse_released(int button);
+/* Absolute pointer in the 320x240 framebuffer. */
+void game_pointer(int x, int y);
+
+/* 3D world. Draws and hit spheres are cleared by jg3_begin_frame.
+   Colliders stay until jg3_clear_colliders. Boxes are centered.
+   AABBs are min-corner plus size. Raycast returns a sphere id,
+   -2 for an AABB, or -1 for a miss. hit_mask bit 0 = AABBs, bit 1 = spheres. */
+void jg3_begin_frame(void);
+void jg3_set_clear(int r, int g, int b);
+void jg3_draw_box(double x, double y, double z, double sx, double sy, double sz, int r, int g, int b);
+void jg3_draw_cylinder(double x, double y, double z, double radius, double height, int segs, int r, int g, int b);
+void jg3_draw_quad(double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, int r, int g, int b);
+void jg3_draw_grid(double x, double y, double z, double sx, double sz, double step, int r, int g, int b);
+/* Box in a camera basis. sx along right, sy along up, sz along forward. */
+void jg3_draw_viewbox(double x, double y, double z, double sx, double sy, double sz, double rx, double ry, double rz, double ux, double uy, double uz, double fx, double fy, double fz, int r, int g, int b);
+void jg3_clear_colliders(void);
+void jg3_add_aabb(double x, double y, double z, double sx, double sy, double sz);
+void jg3_move_collide(double px, double py, double pz, double dx, double dy, double dz, double radius, double height, double *out_x, double *out_y, double *out_z);
+void jg3_add_hit_sphere(int id, double x, double y, double z, double radius);
+int jg3_raycast(double ox, double oy, double oz, double dx, double dy, double dz, double max_t, int hit_mask, int ignore_id, double *out_t);
+void jg3_hud_bar(int x, int y, int w, int h, int filled, int r, int g, int b, int br, int bg, int bb);
+void jg3_hud_digits(int x, int y, int value, int min_digits, int scale, int r, int g, int b);
+void jg3_hud_text(int x, int y, int scale, int r, int g, int b, const char *text);
+void jg3_crosshair(int gap, int r, int g, int b);
+/* Filled rect with a 1px border. r,g,b is the fill. br,bg,bb is the border. */
+void jg3_hud_panel(int x, int y, int w, int h, int r, int g, int b, int br, int bg, int bb);
+/* 1 hides the cursor and captures the mouse. 0 shows it for menus. */
+void jg3_mouse_look(int on);
+/* 1 while the SDL scancode is held. Indexed like SDL_Scancode. */
+int jg3_key(int scancode);
+void jg3_screen_flash(int r, int g, int b, int amount);
+void jg_play_sound(int id);
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* JG_STATIC_H */
