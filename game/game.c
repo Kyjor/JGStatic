@@ -1,15 +1,28 @@
 #include <stdio.h>
 #include "../jg_static.h"
-//gcc -o game game.c   -L/home/kyjor/Documents/Projects/Julia/JGStatic/lib_desktop   -Wl,-rpath,/home/kyjor/Documents/Projects/Julia/JGStatic/lib_desktop   -ljg_static   -lSDL2_image -lSDL2_mixer -lSDL2   -rdynamic
-
-// gcc -o game game.c \
-//   -L/Users/kyleconel/Documents/Projects/JGStatic/lib_desktop \
-//   -Wl,-rpath,/Users/kyleconel/Documents/Projects/JGStatic/lib_desktop \
-//   -L/opt/homebrew/lib \
-//   -Wl,-rpath,/opt/homebrew/lib \
-//   -ljg_static -lSDL2_image -lSDL2_mixer -lSDL2 \
-//   -framework Cocoa \
-//   -rdynamic
+/*
+ * Linux (from game/):
+ *   gcc -o game game.c \
+ *     -L/home/kyjor/Documents/Projects/Julia/JGStatic/lib_desktop \
+ *     -Wl,-rpath,/home/kyjor/Documents/Projects/Julia/JGStatic/lib_desktop \
+ *     -ljg_static -lSDL2_image -lSDL2_mixer -lSDL2 \
+ *     -rdynamic
+ *
+ * macOS (from game/):
+ *   gcc -o game game.c \
+ *     -L/Users/kyleconel/Documents/Projects/JGStatic/lib_desktop \
+ *     -Wl,-rpath,/Users/kyleconel/Documents/Projects/JGStatic/lib_desktop \
+ *     -L/opt/homebrew/lib \
+ *     -Wl,-rpath,/opt/homebrew/lib \
+ *     -ljg_static -lSDL2_image -lSDL2_mixer -lSDL2 \
+ *     -framework Cocoa \
+ *     -rdynamic
+ *
+ * Windows (MSYS2 UCRT64, from game/). gcc is not on the default PowerShell PATH.
+ * No rpath: run the exe from a shell where C:\msys64\ucrt64\bin is on PATH so SDL2*.dll load.
+ *   $env:Path = "C:\msys64\ucrt64\bin;" + $env:Path
+ *   gcc -o game.exe game.c -L../lib_desktop -ljg_static -lSDL2_image -lSDL2_mixer -lSDL2
+ */
 #ifndef JG_NO_MAIN
 int main(void) {
     game_loop();

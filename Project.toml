@@ -2,12 +2,14 @@ name = "JStatic"
 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 
 [deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 StaticCompiler = "81625895-6c0f-48fc-b932-11a18313743c"
 StaticTools = "86c06d3c-3f03-46de-9781-57580aa96d0a"
 
 [sources]
-StaticCompiler = {url = "https://github.com/tshort/StaticCompiler.jl"}
+StaticCompiler = {rev = "master", url = "https://github.com/tshort/StaticCompiler.jl"}
 
 [compat]
-julia = "1.11"
+CEnum = "0.5.0"
 StaticTools = "0.8"
+julia = "1.11"

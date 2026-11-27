@@ -60,6 +60,11 @@ for (func, types, name) in functions_to_compile
         if build_type == "web"
             StaticCompiler.generate_obj(func, types, output_dir, name, emit_llvm_only=true)
             println("✅ Generated: $output_dir/$name.ll")
+        elseif Sys.iswindows()
+            # Julia's LLVM emits ELF .o files on Windows. MinGW ld cannot merge those
+            # into a PE object, so emit IR and compile it with a MinGW clang below.
+            StaticCompiler.generate_obj(func, types, output_dir, name; emit_llvm_only=true, dllexport=true)
+            println("✅ Generated: $output_dir/$name.ll")
         else
             StaticCompiler.generate_obj(func, types, output_dir, name, emit_llvm_only=false)
             println("✅ Generated: $output_dir/$name.o")
@@ -91,6 +96,23 @@ function resolve_emscripten_llvm_link()
         isfile(candidate) && return candidate
     end
     return nothing
+end
+
+function resolve_windows_clang()
+    candidates = String[]
+    haskey(ENV, "CLANG") && push!(candidates, ENV["CLANG"])
+    w = Sys.which("clang")
+    w !== nothing && push!(candidates, w)
+    append!(candidates, (
+        raw"C:\msys64\ucrt64\bin\clang.exe",
+        raw"C:\msys64\mingw64\bin\clang.exe",
+    ))
+    for candidate in candidates
+        isfile(candidate) && return candidate
+    end
+    error("""clang was not found. Julia emits ELF objects on Windows, and MinGW ld cannot link them.
+Install the clang that matches this gcc, then rerun:
+  pacman -S mingw-w64-ucrt-x86_64-clang""")
 end
 
 function resolve_llvm_link()
@@ -187,6 +209,17 @@ runtime_o = joinpath(output_dir, "jg_static_runtime.o")
 println(" Compiling jg_static_runtime.c...")
 run_cmd("gcc", ["-c", "-O3", "-fPIC", "-o", runtime_o, runtime_c])
 
+if Sys.iswindows()
+    clang = resolve_windows_clang()
+    println(" Compiling LLVM IR to PE objects with $clang ...")
+    for file in readdir(output_dir)
+        endswith(file, ".ll") || continue
+        ll = joinpath(output_dir, file)
+        obj = joinpath(output_dir, splitext(file)[1] * ".o")
+        run_cmd(clang, ["-c", "-O3", "-Wno-override-module", "-o", obj, ll])
+    end
+end
+
 julia_o_files = String[]
 for file in readdir(output_dir)
     endswith(file, ".o") || continue
@@ -201,7 +234,8 @@ if isempty(julia_o_files)
 end
 
 merged_o = joinpath(output_dir, "$(lib_base)_merged.o")
-opt_c = ["-O3", "-flto", "-fPIC"]
+# Windows objects come from clang, not GCC LTO. -fPIC is ELF-only.
+opt_c = Sys.iswindows() ? ["-O3"] : ["-O3", "-flto", "-fPIC"]
 if length(julia_o_files) == 1
     cp(julia_o_files[1], merged_o; force=true)
 else
@@ -213,9 +247,13 @@ run_cmd("ar", ["rcs", static_lib, merged_o, runtime_o])
 println("✅ Static archive: $static_lib")
 
 if Sys.iswindows()
-    lib_name = "$(lib_base).dll"
-    system_libs = String[]
-elseif Sys.isapple()
+    # game_* and SDL are provided by the executable. A PE DLL cannot leave
+    # those unresolved the way the ELF .so does, and -ljg_static picks up the .a.
+    println("Skipping $(lib_base).dll. Link the game with -ljg_static.")
+    exit(0)
+end
+
+if Sys.isapple()
     lib_name = "lib$(lib_base).dylib"
     system_libs = ["-Wl,-undefined,dynamic_lookup"]
 else
